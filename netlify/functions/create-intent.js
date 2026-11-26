@@ -46,8 +46,10 @@ exports.handler = async (event) => {
     'automatic_payment_methods': { enabled: 'true' },
     description: `Little Blessing gift (${baby}) · letter in the Children's Sefer Torah`,
     receipt_email: email || undefined,
-    shipping: ship,
+    // shipping is not set here: Stripe.js attaches it on confirm (from the wallet or the
+    // address form), and a restricted key's shipping can't be changed by the page later.
     metadata: {
+      ship_to: [ship.name, ship.address.line1, ship.address.line2, ship.address.city, ship.address.state + ' ' + ship.address.postal_code].filter(Boolean).join(', ').slice(0, 480),
       baby, baby_hebrew_name: hebBaby, mother_hebrew_name: hebMother, baby_dob: dob,
       name: ship.name, phone, email, state: ship.address.state, source: 'little-blessing-site',
     },

@@ -180,6 +180,9 @@ a { color: inherit; }
 .forty .in { gap: min(18px, 2vh); padding-top: 70px; }
 
 .cap .sub.soft { color: var(--stone); opacity: .8; font-weight: 300; font-size: .98rem; letter-spacing: .01em; }
+/* the gift box photo has a white backdrop: in dark mode, show it as a white tile */
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .giftbox .floaty { background: #fff; border-radius: 28px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,.35); } :root:not([data-theme="light"]) .giftbox .floor { display: none; } }
+:root[data-theme="dark"] .giftbox .floaty { background: #fff; border-radius: 28px; overflow: hidden; }
 /* the product */
 .swing { transform-origin: 50% 0; display: grid; justify-items: center; }
 @media (prefers-reduced-motion: no-preference) { .swing { animation: swing 6s ease-in-out infinite; } @keyframes swing { 0%,100% { transform: rotate(-1.6deg); } 50% { transform: rotate(1.6deg); } } }
@@ -257,7 +260,11 @@ footer { padding-block: 60px 48px; text-align: center; display: grid; gap: 10px;
 /* on-page checkout */
 .pay { display: grid; gap: 14px; text-align: left; margin-top: 6px; }
 .pay label { display: grid; gap: 6px; font-size: .85rem; color: var(--stone); }
-.pay input { font: inherit; font-size: 1rem; color: var(--ink); padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--accent) 22%, #e6e6ea); border-radius: 12px; background: #fff; width: 100%; box-sizing: border-box; }
+.pay input { font: inherit; font-size: 16px; color: #1F1A1D; -webkit-text-fill-color: #1F1A1D; caret-color: var(--accent); padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--accent) 22%, #e6e6ea); border-radius: 12px; background: #fff; color-scheme: light; display: block; width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; margin: 0; }
+.pay input::placeholder { color: #8E8790; -webkit-text-fill-color: #8E8790; opacity: 1; }
+.pay input[type=date] { -webkit-appearance: none; appearance: none; min-height: 48px; text-align: left; }
+.pay input[type=date]::-webkit-date-and-time-value { text-align: left; }
+.pay label { min-width: 0; }
 .pay input[lang="he"] { font-family: 'Frank Ruhl Libre', David, serif; font-size: 1.1rem; }
 .pay input:focus { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px; }
 .pay .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
