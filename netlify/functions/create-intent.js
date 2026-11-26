@@ -32,8 +32,8 @@ exports.handler = async (event) => {
   };
 
   const missing = [];
-  if (!hebMother) missing.push("mother's Hebrew name");
-  if (!hebBaby) missing.push("baby's Hebrew name");
+  if (!hebMother) missing.push("your Jewish name");
+  if (!hebBaby) missing.push("baby's Jewish name");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dob)) missing.push("baby's date of birth");
   if (!ship.name) missing.push('name');
   if (!phone) missing.push('phone');

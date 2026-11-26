@@ -183,6 +183,15 @@ a { color: inherit; }
 /* the gift box photo has a white backdrop: in dark mode, show it as a white tile */
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .giftbox .floaty { background: #fff; border-radius: 28px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,.35); } :root:not([data-theme="light"]) .giftbox .floor { display: none; } }
 :root[data-theme="dark"] .giftbox .floaty { background: #fff; border-radius: 28px; overflow: hidden; }
+
+/* phones: same look, lighter work per frame */
+.hang, .cribbox, .carbox, .cert, .herocopy, .certcopy { will-change: transform, opacity; }
+@media (max-width: 699px) {
+  .hang .plaque { backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .swing { animation: none !important; }
+  .hang .face { filter: none; }
+  .forty.on .n { animation: none; filter: drop-shadow(0 14px 30px color-mix(in srgb, var(--accent) 28%, transparent)); }
+}
 /* the product */
 .swing { transform-origin: 50% 0; display: grid; justify-items: center; }
 @media (prefers-reduced-motion: no-preference) { .swing { animation: swing 6s ease-in-out infinite; } @keyframes swing { 0%,100% { transform: rotate(-1.6deg); } 50% { transform: rotate(1.6deg); } } }
@@ -278,6 +287,12 @@ footer { padding-block: 60px 48px; text-align: center; display: grid; gap: 10px;
 .pay .msg { color: #B3261E; font-size: .9rem; min-height: 1em; margin: 0; }
 .thanks { text-align: center; display: grid; gap: 8px; padding: 18px 0 4px; }
 .thanks h3 { color: var(--deep); font-size: 1.4rem; margin: 0; }
+
+.dobrow { display: grid; gap: 8px; }
+.dlabel { font-size: .85rem; color: var(--stone); }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chips button { font: inherit; font-size: .9rem; padding: 8px 14px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); background: transparent; color: var(--ink); cursor: pointer; }
+.chips button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
 </style>
 </head>
 <body>
@@ -445,10 +460,16 @@ footer { padding-block: 60px 48px; text-align: center; display: grid; gap: 10px;
         <a class="checkout" id="checkout" href="https://buy.stripe.com/6oU8wQg4wamH95qdRLasg02" target="_blank" rel="noopener">Request your gift · $1</a>
         <form class="pay" id="payForm" novalidate hidden>
           <div class="two">
-            <label>Your Hebrew name<input id="hebMother" lang="he" dir="rtl" autocomplete="off" placeholder="לאה בת שרה" required></label>
-            <label>Baby’s Hebrew name<input id="hebBaby" lang="he" dir="rtl" autocomplete="off" placeholder="שרה בת לאה" required></label>
+            <label>Your Jewish name<input id="hebMother" dir="auto" autocomplete="off" autocapitalize="words" placeholder="Sarah" required></label>
+            <label>Baby’s Jewish name<input id="hebBaby" dir="auto" autocomplete="off" autocapitalize="words" placeholder="Chaya" required></label>
           </div>
-          <label>Baby’s date of birth<input id="dob" type="date" autocomplete="off" required></label>
+          <div class="dobrow">
+            <span class="dlabel">Baby’s date of birth</span>
+            <div class="chips" role="group" aria-label="Quick pick">
+              <button type="button" data-days="0">Today</button><button type="button" data-days="1">Yesterday</button><button type="button" data-days="2">2 days ago</button>
+            </div>
+            <input id="dob" type="date" autocomplete="off" aria-label="Baby’s date of birth" required>
+          </div>
           <div id="express" class="express"></div>
           <details class="bycard" id="byCard">
             <summary>Or pay with a card</summary>
@@ -522,10 +543,15 @@ footer { padding-block: 60px 48px; text-align: center; display: grid; gap: 10px;
   function ease(t) { return t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
   function lerp(a, b, t) { return a + (b - a) * t; }
   function tf(el, x, y, s) { el.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) scale(' + s.toFixed(4) + ')'; }
+  var VW = innerWidth, VH = innerHeight, CUR = -1;
   function frame() {
-    var vw = innerWidth, vh = innerHeight, mobile = vw < 700;
+    var vw = VW, vh = VH, mobile = vw < 700;
     var r = film.getBoundingClientRect();
-    var raw = clamp(-r.top / (r.height - vh));
+    var target = clamp(-r.top / (r.height - vh));
+    // ease toward the scroll position instead of jumping to it, so the scene glides on phones
+    if (CUR < 0) CUR = target; CUR += (target - CUR) * (mobile ? .18 : .28);
+    if (Math.abs(target - CUR) < .0003) CUR = target;
+    var raw = CUR;
     var p = raw < .15 ? raw * .06 / .15 : .06 + (raw - .15) * (.94 / .85);   // the first part holds the plaque still for the hero, then the explanation
     if (NOCAR) p = p < .40 ? p : .62 + (p - .40) * (.38 / .60);
     var t1 = ease(seg(p, .06, .18)), t2 = ease(seg(p, .26, .36)), t5 = ease(seg(p, .44, .56)), t3 = ease(seg(p, .71, .79)), tc = ease(seg(p, .64, .68)), t4 = ease(seg(p, .86, .94));
@@ -583,8 +609,11 @@ footer { padding-block: 60px 48px; text-align: center; display: grid; gap: 10px;
   }
   if (NOCAR) { car.style.display = 'none'; if (dots[3]) dots[3].style.display = 'none'; film.style.height = '540vh'; }
   var ticking = false;
-  function onScroll() { if (!ticking) { ticking = true; requestAnimationFrame(function () { ticking = false; frame(); }); } }
-  addEventListener('scroll', onScroll, { passive: true }); addEventListener('resize', onScroll); frame();
+  function tick() { frame(); var r = film.getBoundingClientRect(); var t = clamp(-r.top / (r.height - VH)); if (Math.abs(t - CUR) > 0) requestAnimationFrame(tick); else ticking = false; }
+  function onScroll() { if (!ticking) { ticking = true; requestAnimationFrame(tick); } }
+  // keep one viewport height: the phone's address bar showing and hiding should not move the scene
+  addEventListener('resize', function () { if (innerWidth !== VW || Math.abs(innerHeight - VH) > 160) { VW = innerWidth; VH = innerHeight; CUR = -1; } onScroll(); });
+  addEventListener('scroll', onScroll, { passive: true }); frame();
 
   var home = document.getElementById('home'), story = document.getElementById('storyView');
   function route() { var s = location.hash === '#story'; story.hidden = !s; home.hidden = s; if (s) scrollTo(0, 0); }
@@ -607,9 +636,14 @@ footer { padding-block: 60px 48px; text-align: center; display: grid; gap: 10px;
   function extras() {
     var m = document.getElementById('hebMother').value.trim(), b = document.getElementById('hebBaby').value.trim(), d = dob.value;
     var miss = [];
-    if (!m) miss.push('your Hebrew name'); if (!b) miss.push('the baby’s Hebrew name'); if (!d) miss.push('the baby’s date of birth');
+    if (!m) miss.push('your Jewish name'); if (!b) miss.push('the baby’s Jewish name'); if (!d) miss.push('the baby’s date of birth');
     return { ok: !miss.length, miss: miss, hebMother: m, hebBaby: b, dob: d };
   }
+  // quick picks for the birth date; the calendar stays for any other day
+  var chips = document.querySelectorAll('.chips button');
+  function local(d) { return new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); }
+  chips.forEach(function (c) { c.addEventListener('click', function () { var d = new Date(); d.setDate(d.getDate() - +c.dataset.days); dob.value = local(d); chips.forEach(function (x) { x.classList.toggle('on', x === c); }); }); });
+  dob.addEventListener('input', function () { chips.forEach(function (x) { var d = new Date(); d.setDate(d.getDate() - +x.dataset.days); x.classList.toggle('on', local(d) === dob.value); }); });
   function done() { form.hidden = true; thanks.hidden = false; }
   if (/[?&]paid=1/.test(location.search)) { done(); if (link) link.hidden = true; }
   if (typeof Stripe === 'undefined') return;   // preview without Stripe: keep the payment link
