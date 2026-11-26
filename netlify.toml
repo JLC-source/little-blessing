@@ -1,0 +1,21 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Apple Pay domain check: serve Stripe's association file from our own domain
+[[redirects]]
+  from = "/.well-known/apple-developer-merchantid-domain-association"
+  to = "https://stripe.com/files/apple-pay/apple-developer-merchantid-domain-association"
+  status = 200
+  force = true
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Content-Type-Options = "nosniff"
